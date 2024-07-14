@@ -14,10 +14,10 @@ const getDataCongreso = async (req, res) => {
 };
 
 const filterDataCongreso = async (req, res) => {
-  const sql = "SELECT * FROM congreso_preguntas LIMIT 10";
+  const sql = "SELECT * FROM congreso_preguntas";
   const {
-    page,
-    pageSize,
+    page = 1,
+    pageSize = 10,
     body = {},
     exactFilters = [],
     rangeFilters = [],
