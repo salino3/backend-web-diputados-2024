@@ -1,14 +1,33 @@
-const http = require("http");
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const routerCongreso = require("./src/routes/congreso");
 
-const hostname = "127.0.0.1";
-const port = 8000;
+// Config dotenv
+dotenv?.config();
+const app = express();
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Hello world\n");
+// Middleware of register
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running on port http://${hostname}:${port}/`);
+// Middleware CORS
+app.use(
+  cors({
+    origin: "http://localhost:8000",
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
+  })
+);
+
+const port = process.env.PORT ?? 8100;
+
+app.use(express.json());
+
+app.use("/api", routerCongreso);
+
+app.listen(port, () => {
+  console.log(`Express server listening on port ${port}`);
 });
