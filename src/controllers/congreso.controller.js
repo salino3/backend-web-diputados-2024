@@ -8,8 +8,8 @@ const getDataCongreso = async (req, res) => {
     connection.release();
     res.status(200).json(results);
   } catch (error) {
-    console.error("Error en la consulta:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal error of server" });
   }
 };
 
@@ -118,8 +118,8 @@ const filterDataCongreso = async (req, res) => {
       totalProducts: (filteredData && filteredData?.length) || 0,
     });
   } catch (error) {
-    console.error("Error en la consulta:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal error of server" });
   }
 };
 
