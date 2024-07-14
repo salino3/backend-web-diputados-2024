@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const routerCongreso = require("./src/routes/congreso");
 
+// Config dotenv
 dotenv?.config();
 const app = express();
 
@@ -23,6 +25,8 @@ app.use(
 const port = process.env.PORT ?? 8100;
 
 app.use(express.json());
+
+app.use("/api", routerCongreso);
 
 app.listen(port, () => {
   console.log(`Express server listening on port ${port}`);
