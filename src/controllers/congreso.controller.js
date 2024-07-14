@@ -1,9 +1,15 @@
-const getDataCongreso = (req, res) => {
+const { pool } = require("../../db");
+
+const getDataCongreso = async (req, res) => {
+  const sql = "SELECT * FROM congreso_preguntas LIMIT 10";
   try {
-    return res.status(200).json({ message: "hola" });
+    const connection = await pool.getConnection();
+    const [results, fields] = await connection.execute(sql);
+    connection.release();
+    res.status(200).json(results);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error en la consulta:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 };
 
