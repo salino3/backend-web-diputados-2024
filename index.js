@@ -16,7 +16,7 @@ app.use((req, res, next) => {
 // Middleware CORS
 app.use(
   cors({
-    origin: "http://localhost:8000",
+    origin: "http://localhost:4000",
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
   })
