@@ -14,7 +14,10 @@ const getDataCongreso = async (req, res) => {
 };
 
 const filterDataCongreso = async (req, res) => {
-  const sql = "SELECT * FROM congreso_preguntas";
+  const sql = `SELECT Expediente, Presentada, Contenido, diputados_autores, 
+  Grupo_Parlamentario, comunidades_tags, provincia_tags, municipios_tags, url  
+  FROM congreso_diputados.congreso_preguntas`;
+
   const {
     page = 1,
     pageSize = 10,
