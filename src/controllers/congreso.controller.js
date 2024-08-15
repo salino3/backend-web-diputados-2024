@@ -13,6 +13,28 @@ const getDataCongreso = async (req, res) => {
   }
 };
 
+const getDataDistinct = async (req, res) => {
+  const sql = `SELECT DISTINCT diputados_autores FROM congreso_diputados.congreso_preguntas`;
+
+  try {
+    const connection = await pool.getConnection();
+    const [results] = await connection.execute(sql);
+    connection.release();
+
+    const allDiputadosAutores = results.flatMap((row) => {
+      const namesArray = JSON.parse(row.diputados_autores.replace(/'/g, '"'));
+      return namesArray.map((name) => name.trim());
+    });
+
+    const uniqueDiputadosAutores = [...new Set(allDiputadosAutores)];
+
+    res.status(200).json(uniqueDiputadosAutores);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal error of server" });
+  }
+};
+
 const filterDataCongreso = async (req, res) => {
   const sql = `SELECT Expediente, Presentada, Contenido, diputados_autores, 
   Grupo_Parlamentario, comunidades_tags, provincia_tags, municipios_tags, url  
@@ -72,9 +94,30 @@ const filterDataCongreso = async (req, res) => {
               itemNumber <= Number(filterValue.max)
             );
           }
-        } else if (typeof filterValue === "string") {
-          const itemValue = item[key]?.toString().toLowerCase();
-          return !filterValue || itemValue.includes(filterValue);
+        } else if (Array.isArray(filterValue) && filterValue.length > 0) {
+          return filterValue.some((value) =>
+            item[key]
+              ?.toString()
+              .toLowerCase()
+              .includes(value.toString().toLowerCase())
+          );
+        }
+        // else if (typeof filterValue === "string") {
+        //   const itemValue = item[key]?.toLowerCase();
+        //   return !filterValue || itemValue.includes(filterValue?.toLowerCase());
+        // }
+        //* Filter to simplify letters
+        else if (typeof filterValue === "string") {
+          const normalizeString = (str) =>
+            str
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .toLowerCase();
+
+          const itemValue = normalizeString(item[key]?.toString());
+          const normalizedFilterValue = normalizeString(filterValue);
+
+          return !filterValue || itemValue.includes(normalizedFilterValue);
         } else {
           return true;
         }
@@ -129,4 +172,5 @@ const filterDataCongreso = async (req, res) => {
 module.exports = {
   getDataCongreso,
   filterDataCongreso,
+  getDataDistinct,
 };

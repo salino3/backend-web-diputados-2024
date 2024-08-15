@@ -5,6 +5,8 @@ const routerCongreso = express.Router();
 
 routerCongreso.get("/get-data", congresoController.getDataCongreso);
 
+routerCongreso.get("/distinct", congresoController.getDataDistinct);
+
 routerCongreso.post("/filter", congresoController.filterDataCongreso);
 
 module.exports = routerCongreso;
