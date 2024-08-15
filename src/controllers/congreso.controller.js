@@ -101,24 +101,25 @@ const filterDataCongreso = async (req, res) => {
               .toLowerCase()
               .includes(value.toString().toLowerCase())
           );
+        } else if (typeof filterValue === "string") {
+          const itemValue = item[key]?.toLowerCase();
+          return !filterValue || itemValue.includes(filterValue?.toLowerCase());
         }
-        // else if (typeof filterValue === "string") {
-        //   const itemValue = item[key]?.toLowerCase();
-        //   return !filterValue || itemValue.includes(filterValue?.toLowerCase());
-        // }
         //* Filter to simplify letters
-        else if (typeof filterValue === "string") {
-          const normalizeString = (str) =>
-            str
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .toLowerCase();
+        // else if (typeof filterValue === "string") {
+        //   if (typeof str !== "string") return "";
+        //   const normalizeString = (str) =>
+        //     str
+        //       .normalize("NFD")
+        //       .replace(/[\u0300-\u036f]/g, "")
+        //       .toLowerCase();
 
-          const itemValue = normalizeString(item[key]?.toString());
-          const normalizedFilterValue = normalizeString(filterValue);
+        //   const itemValue = normalizeString(item[key]?.toString());
+        //   const normalizedFilterValue = normalizeString(filterValue);
 
-          return !filterValue || itemValue.includes(normalizedFilterValue);
-        } else {
+        //   return !filterValue || itemValue.includes(normalizedFilterValue);
+        // }
+        else {
           return true;
         }
       });
