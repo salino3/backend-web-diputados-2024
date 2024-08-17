@@ -9,4 +9,9 @@ routerCongreso.get("/distinct", congresoController.getDataDistinct);
 
 routerCongreso.post("/filter", congresoController.filterDataCongreso);
 
+routerCongreso.post(
+  "/filter-by-cache",
+  congresoController.filterDataCongresoByCache
+);
+
 module.exports = routerCongreso;
