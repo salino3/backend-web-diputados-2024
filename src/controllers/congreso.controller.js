@@ -250,7 +250,10 @@ const filterDataCongresoByCache = async (req, res) => {
         );
       } else if (typeof filterValue === "string") {
         const itemValue = normalizeString(item[key]?.toLowerCase());
-        return !filterValue || itemValue.includes(filterValue?.toLowerCase());
+        return (
+          !filterValue ||
+          itemValue.includes(normalizeString(filterValue?.toLowerCase()))
+        );
       } else {
         return true;
       }
