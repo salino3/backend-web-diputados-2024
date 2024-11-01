@@ -24,3 +24,6 @@ save-codes
 *.njsproj
 *.sln
 *.sw?
+
+#Key_files
+data_engineering/api_keys
