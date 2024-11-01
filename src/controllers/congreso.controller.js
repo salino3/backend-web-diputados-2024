@@ -9,7 +9,7 @@ const {
 // const cache = new NodeCache({ stdTTL: 1200 }); // TTL (Time To Live) of 600 seconds for caché
 
 const getDataCongreso = async (req, res) => {
-  const sql = "SELECT * FROM congreso_preguntas LIMIT 10";
+  const sql = "SELECT * FROM congreso_preguntas_01_11_2024 LIMIT 10";
   try {
     const connection = await pool.getConnection();
     const [results, fields] = await connection.execute(sql);
@@ -22,7 +22,7 @@ const getDataCongreso = async (req, res) => {
 };
 
 const getDataDistinct = async (req, res) => {
-  const sql = `SELECT DISTINCT diputados_autores FROM congreso_diputados.congreso_preguntas`;
+  const sql = `SELECT DISTINCT diputados_autores FROM congreso_diputados.congreso_preguntas_01_11_2024`;
 
   try {
     const connection = await pool.getConnection();
@@ -46,7 +46,7 @@ const getDataDistinct = async (req, res) => {
 const filterDataCongreso = async (req, res) => {
   const sql = `SELECT Expediente, Presentada, Contenido, diputados_autores, 
   Grupo_Parlamentario, comunidades_tags, provincia_tags, municipios_tags, url  
-  FROM congreso_diputados.congreso_preguntas`;
+  FROM congreso_diputados.congreso_preguntas_01_11_2024`;
 
   const {
     page = 1,
