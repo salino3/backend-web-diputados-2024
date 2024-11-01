@@ -26,4 +26,4 @@ save-codes
 *.sw?
 
 #Key_files
-data_engineering/api_keys
+data_engineering/api_keys/*
