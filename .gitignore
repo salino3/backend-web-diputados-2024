@@ -28,3 +28,5 @@ save-codes
 #Key_files
 data_engineering/api_keys/*
 data_engineering/api_keys/mysql_key_00.env
+
+.venv
