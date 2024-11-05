@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 save-codes
+data
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +25,9 @@ save-codes
 *.njsproj
 *.sln
 *.sw?
+
+#Key_files
+data_engineering/api_keys/*
+data_engineering/api_keys/mysql_key_00.env
+
+.venv

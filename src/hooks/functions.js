@@ -17,7 +17,7 @@ const fetchAndCacheData = async () => {
   // Query SQL for get all data
   const sql = `SELECT Expediente, Presentada, Contenido, diputados_autores, 
     Grupo_Parlamentario, comunidades_tags, provincia_tags, municipios_tags, url  
-    FROM congreso_diputados.congreso_preguntas`;
+    FROM congreso_diputados.congreso_preguntas_01_11_2024`;
   try {
     const connection = await pool.getConnection();
     const [results] = await connection.execute(sql);
