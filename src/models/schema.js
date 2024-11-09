@@ -41,7 +41,7 @@ const RootQuery = new GraphQLObjectType({
             exactFilters,
             rangeFilters,
           });
-          return { products, totalProducts }; // Devolver los datos como se requiere
+          return { products, totalProducts };
         } catch (error) {
           console.error("Error resolving questions:", error);
           throw new Error("Failed to fetch and filter questions data.");
