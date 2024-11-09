@@ -8,19 +8,6 @@ const {
 
 // const cache = new NodeCache({ stdTTL: 1200 }); // TTL (Time To Live) of 600 seconds for caché
 
-const getDataCongreso = async (req, res) => {
-  const sql = "SELECT * FROM congreso_preguntas_01_11_2024 LIMIT 10";
-  try {
-    const connection = await pool.getConnection();
-    const [results, fields] = await connection.execute(sql);
-    connection.release();
-    res.status(200).json(results);
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal error of server" });
-  }
-};
-
 const filterDataCongresoByCache = async (req, res) => {
   const {
     page = 1,
@@ -145,6 +132,5 @@ const filterDataCongresoByCache = async (req, res) => {
 };
 
 module.exports = {
-  getDataCongreso,
   filterDataCongresoByCache,
 };
