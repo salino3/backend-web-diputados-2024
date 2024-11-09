@@ -21,28 +21,6 @@ const getDataCongreso = async (req, res) => {
   }
 };
 
-const getDataDistinct = async (req, res) => {
-  const sql = `SELECT DISTINCT diputados_autores FROM congreso_diputados.congreso_preguntas_01_11_2024`;
-
-  try {
-    const connection = await pool.getConnection();
-    const [results] = await connection.execute(sql);
-    connection.release();
-
-    const allDiputadosAutores = results.flatMap((row) => {
-      const namesArray = JSON.parse(row.diputados_autores.replace(/'/g, '"'));
-      return namesArray.map((name) => name.trim());
-    });
-
-    const uniqueDiputadosAutores = [...new Set(allDiputadosAutores)];
-
-    res.status(200).json(uniqueDiputadosAutores);
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal error of server" });
-  }
-};
-
 const filterDataCongresoByCache = async (req, res) => {
   const {
     page = 1,
@@ -168,6 +146,5 @@ const filterDataCongresoByCache = async (req, res) => {
 
 module.exports = {
   getDataCongreso,
-  getDataDistinct,
   filterDataCongresoByCache,
 };
