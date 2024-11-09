@@ -15,9 +15,11 @@ const filterDataCongresoByCache = async (req, res) => {
     body = {},
     exactFilters = [],
     rangeFilters = [],
-  } = req.body;
+  } = req;
   console.log("Page", page);
   console.log("exactFilters", exactFilters);
+  console.log("BODY:", body);
+  console.log("Req:", req);
 
   const offset = (page - 1) * pageSize;
 
@@ -125,10 +127,15 @@ const filterDataCongresoByCache = async (req, res) => {
   const end = start + pageSize;
   const paginatedData = filteredData.slice(start, end);
 
-  res.status(200).json({
+  // res.status(200).json({
+  //   products: paginatedData || [],
+  //   totalProducts: filteredData.length || 0,
+  // });
+
+  return {
     products: paginatedData || [],
-    totalProducts: (filteredData && filteredData.length) || 0,
-  });
+    totalProducts: filteredData.length || 0,
+  };
 };
 
 module.exports = {

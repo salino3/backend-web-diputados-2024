@@ -1,7 +1,9 @@
 const express = require("express");
+const { graphqlHTTP } = require("express-graphql");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const routerCongreso = require("./src/routes/congreso");
+const schema = require("./src/models/schema");
 
 // Config dotenv
 dotenv?.config();
@@ -13,21 +15,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware CORS
-app.use(
-  cors({
-    origin: "http://localhost:4000",
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    credentials: true,
-  })
-);
-
 const port = process.env.PORT ?? 8100;
 
 app.use(express.json());
 
 app.use("/api", routerCongreso);
 
+// GraphQL Endpoint
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema,
+    graphiql: true,
+  })
+);
+
 app.listen(port, () => {
   console.log(`Express server listening on port ${port}`);
 });
+
+// Middleware CORS
+// app.use(
+//   cors({
+//     origin: "http://localhost:4000",
+//     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+//     credentials: true,
+//   })
+// );

@@ -1,7 +1,7 @@
-const { GraphQLObjectType, GraphQLString } = require("graphql");
+const { GraphQLInputObjectType, GraphQLString } = require("graphql");
 
-const CongresoModel = new GraphQLObjectType({
-  name: "Question",
+const CongresoInputType = new GraphQLInputObjectType({
+  name: "CongresoInputType",
   fields: {
     Expediente: { type: GraphQLString },
     Contenido: { type: GraphQLString },
@@ -15,4 +15,4 @@ const CongresoModel = new GraphQLObjectType({
   },
 });
 
-module.exports = CongresoModel;
+module.exports = CongresoInputType;
