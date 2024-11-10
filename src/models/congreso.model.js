@@ -1,4 +1,9 @@
-const { GraphQLObjectType, GraphQLString } = require("graphql");
+const {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLList,
+} = require("graphql");
 
 const CongresoModel = new GraphQLObjectType({
   name: "Question",
@@ -6,7 +11,6 @@ const CongresoModel = new GraphQLObjectType({
     Expediente: { type: GraphQLString },
     Contenido: { type: GraphQLString },
     Presentada: { type: GraphQLString },
-    Calificada: { type: GraphQLString },
     diputados_autores: { type: GraphQLString },
     Grupo_Parlamentario: { type: GraphQLString },
     comunidades_tags: { type: GraphQLString },
@@ -15,4 +19,13 @@ const CongresoModel = new GraphQLObjectType({
   },
 });
 
-module.exports = CongresoModel;
+//
+const ResponseType = new GraphQLObjectType({
+  name: "ResponseType",
+  fields: {
+    products: { type: new GraphQLList(CongresoModel) },
+    totalProducts: { type: GraphQLInt },
+  },
+});
+
+module.exports = { CongresoModel, ResponseType };

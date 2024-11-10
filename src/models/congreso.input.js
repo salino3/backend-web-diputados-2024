@@ -1,4 +1,8 @@
-const { GraphQLInputObjectType, GraphQLString } = require("graphql");
+const {
+  GraphQLInputObjectType,
+  GraphQLString,
+  GraphQLList,
+} = require("graphql");
 
 const PresentadaInputType = new GraphQLInputObjectType({
   name: "PresentadaInputType",
@@ -14,12 +18,11 @@ const CongresoInputType = new GraphQLInputObjectType({
     Expediente: { type: GraphQLString },
     Contenido: { type: GraphQLString },
     Presentada: { type: PresentadaInputType },
-    Calificada: { type: GraphQLString },
-    diputados_autores: { type: GraphQLString },
-    Grupo_Parlamentario: { type: GraphQLString },
-    comunidades_tags: { type: GraphQLString },
-    provincia_tags: { type: GraphQLString },
-    municipios_tags: { type: GraphQLString },
+    diputados_autores: { type: new GraphQLList(GraphQLString) },
+    Grupo_Parlamentario: { type: new GraphQLList(GraphQLString) },
+    comunidades_tags: { type: new GraphQLList(GraphQLString) },
+    provincia_tags: { type: new GraphQLList(GraphQLString) },
+    municipios_tags: { type: new GraphQLList(GraphQLString) },
   },
 });
 

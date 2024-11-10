@@ -5,10 +5,10 @@ const {
   GraphQLString,
   GraphQLSchema,
 } = require("graphql");
-const ResponseType = require("./congreso.response");
 const {
   filterDataCongresoByCache,
 } = require("../controllers/congreso.controller");
+const { ResponseType } = require("./congreso.model");
 const CongresoInputType = require("./congreso.input");
 
 const RootQuery = new GraphQLObjectType({
