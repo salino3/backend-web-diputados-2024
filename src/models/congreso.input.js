@@ -14,7 +14,6 @@ const CongresoInputType = new GraphQLInputObjectType({
     Expediente: { type: GraphQLString },
     Contenido: { type: GraphQLString },
     Presentada: { type: PresentadaInputType },
-    Calificada: { type: GraphQLString },
     diputados_autores: { type: GraphQLString },
     Grupo_Parlamentario: { type: GraphQLString },
     comunidades_tags: { type: GraphQLString },
