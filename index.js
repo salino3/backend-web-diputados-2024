@@ -2,7 +2,7 @@ const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const routerCongreso = require("./src/routes/congreso");
+// const routerCongreso = require("./src/routes/congreso");
 const schema = require("./src/models/schema");
 
 // Config dotenv
@@ -19,9 +19,7 @@ const port = process.env.PORT ?? 8100;
 
 app.use(express.json());
 
-app.use("/api", routerCongreso);
-
-// GraphQL Endpoint
+//* GraphQL Endpoint
 app.use(
   "/graphql",
   graphqlHTTP({
@@ -30,9 +28,8 @@ app.use(
   })
 );
 
-app.listen(port, () => {
-  console.log(`Express server listening on port ${port}`);
-});
+//* API REST endpoint
+// app.use("/api", routerCongreso);
 
 // Middleware CORS
 // app.use(
@@ -42,3 +39,7 @@ app.listen(port, () => {
 //     credentials: true,
 //   })
 // );
+
+app.listen(port, () => {
+  console.log(`Express server listening on port ${port}`);
+});
