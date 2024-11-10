@@ -15,11 +15,11 @@ const filterDataCongresoByCache = async (req, res) => {
     body = {},
     exactFilters = [],
     rangeFilters = [],
-  } = req;
-  console.log("Page", page);
-  console.log("exactFilters", exactFilters);
-  console.log("BODY:", body);
-  console.log("Req:", req);
+  } = process.env.START_MODE === "GRAPHQL" ? req : req.body;
+  // console.log("Page", page);
+  // console.log("exactFilters", exactFilters);
+  // console.log("BODY:", body);
+  // console.log("Req:", req);
 
   const offset = (page - 1) * pageSize;
 
@@ -28,7 +28,7 @@ const filterDataCongresoByCache = async (req, res) => {
   let results = cache.get(cacheKey);
 
   if (!results) {
-    console.log("Cache miss!");
+    // console.log("Cache miss!");
     results = await fetchAndCacheData();
   }
 
@@ -46,7 +46,7 @@ const filterDataCongresoByCache = async (req, res) => {
     return acc;
   }, {});
 
-  console.log("Filters:", filters);
+  // console.log("Filters:", filters);
 
   // Filters
   let filteredData = results?.filter((item) => {
@@ -127,15 +127,17 @@ const filterDataCongresoByCache = async (req, res) => {
   const end = start + pageSize;
   const paginatedData = filteredData.slice(start, end);
 
-  // res.status(200).json({
-  //   products: paginatedData || [],
-  //   totalProducts: filteredData.length || 0,
-  // });
-
-  return {
-    products: paginatedData || [],
-    totalProducts: filteredData.length || 0,
-  };
+  if (process.env.START_MODE === "GRAPHQL") {
+    return {
+      products: paginatedData || [],
+      totalProducts: filteredData.length || 0,
+    };
+  } else {
+    res.status(200).json({
+      products: paginatedData || [],
+      totalProducts: filteredData.length || 0,
+    });
+  }
 };
 
 module.exports = {
