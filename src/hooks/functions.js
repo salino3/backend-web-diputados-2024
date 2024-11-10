@@ -22,7 +22,6 @@ const fetchAndCacheData = async () => {
     const connection = await pool.getConnection();
     const [results] = await connection.execute(sql);
     connection.release();
-    console.log("HolaX");
 
     // Save all caché results
     cache.set("congreso_data", results || []);
