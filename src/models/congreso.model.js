@@ -16,6 +16,7 @@ const CongresoModel = new GraphQLObjectType({
     comunidades_tags: { type: GraphQLString },
     provincia_tags: { type: GraphQLString },
     municipios_tags: { type: GraphQLString },
+    url: { type: GraphQLString },
   },
 });
 
