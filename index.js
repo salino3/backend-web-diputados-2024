@@ -11,7 +11,8 @@ const app = express();
 // Middleware CORS
 app.use(
   cors({
-    origin: "http://localhost:4000",
+    // origin: "http://localhost:4000",
+    origin: "*",
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
   })
