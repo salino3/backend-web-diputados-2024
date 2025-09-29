@@ -3,7 +3,8 @@ const NodeCache = require("node-cache");
 
 // TTL (Time To Live) of 1200 seconds for caché (20 min)
 const cache = new NodeCache({ stdTTL: 1200, checkperiod: 600 });
-
+// Method for directly clear everything
+// cache.flushAll();
 const normalizeString = (str) => {
   if (typeof str !== "string") return "";
 
