@@ -5,7 +5,7 @@ const routerCongreso = express.Router();
 
 routerCongreso.post(
   "/filter-by-cache",
-  congresoController.filterDataCongresoByCache
+  congresoController.filterDataCongresoByDB
 );
 
 module.exports = routerCongreso;
