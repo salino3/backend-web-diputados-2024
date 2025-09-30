@@ -43,14 +43,13 @@ const filterDataCongresoByDB = async (req, res) => {
     }
 
     // --- 1.1 Handle Range Filters (dates or numbers) ---
-    // Assumes the frontend sends {min: '2023-01-01', max: '2023-12-31'}
     if (rangeFilters.includes(key) && filterValue?.min && filterValue?.max) {
       whereClauses.push(`\`${key}\` BETWEEN ? AND ?`);
       params.push(filterValue.min);
       params.push(filterValue.max);
 
       // --- 1.2 Handle Multiselect (Arrays) ---
-      // Assumes these fields contain tags searched using LIKE
+      // Values are pre-cleaned from dropdowns.
     } else if (Array.isArray(filterValue) && filterValue.length > 0) {
       const conditions = filterValue
         .map((val) => `\`${key}\` LIKE ?`)
@@ -65,9 +64,15 @@ const filterDataCongresoByDB = async (req, res) => {
       if (exactFilters.includes(key)) {
         whereClauses.push(`\`${key}\` = ?`);
         params.push(filterValue);
+
+        // SPECIAL CASE: 'Contenido' (Free Text Search)
+      } else if (key === "Contenido") {
+        const normalizedValue = normalizeString(filterValue);
+
+        whereClauses.push(`LOWER(\`${key}\`) LIKE ?`);
+
+        params.push(`%${normalizedValue}%`);
       } else {
-        // Partial Search Filter (Content, Tags, etc.)
-        // Uses LIKE, which results in a full table scan on TEXT columns.
         whereClauses.push(`\`${key}\` LIKE ?`);
         params.push(`%${filterValue}%`);
       }
@@ -98,14 +103,9 @@ const filterDataCongresoByDB = async (req, res) => {
 
   try {
     // 3. QUERY EXECUTION
-
-    // 3.1 Data Query (includes SQL_CALC_FOUND_ROWS)
-    // Assumes 'pool' connection returns an array of results (e.g., using 'mysql2').
     const [rows] = await pool.query(dataQuery, finalParams);
     paginatedData = rows;
 
-    // 3.2 Count Query (FOUND_ROWS())
-    // Retrieves the total number of unfiltered rows from the previous query.
     const [countRows] = await pool.query(countQuery);
     totalCount = countRows[0]?.totalProducts || 0;
   } catch (error) {
@@ -122,6 +122,7 @@ const filterDataCongresoByDB = async (req, res) => {
   const responseData = {
     products: paginatedData,
     totalProducts: totalCount,
+    // pageSize: pageSizeLimited,
   };
 
   if (process.env.START_MODE === "GRAPHQL") {
@@ -130,7 +131,6 @@ const filterDataCongresoByDB = async (req, res) => {
     res.status(200).json(responseData);
   }
 };
-
 module.exports = {
   filterDataCongresoByDB,
 };
