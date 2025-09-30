@@ -122,7 +122,6 @@ const filterDataCongresoByDB = async (req, res) => {
   const responseData = {
     products: paginatedData,
     totalProducts: totalCount,
-    // pageSize: pageSizeLimited,
   };
 
   if (process.env.START_MODE === "GRAPHQL") {
@@ -131,6 +130,7 @@ const filterDataCongresoByDB = async (req, res) => {
     res.status(200).json(responseData);
   }
 };
+
 module.exports = {
   filterDataCongresoByDB,
 };
