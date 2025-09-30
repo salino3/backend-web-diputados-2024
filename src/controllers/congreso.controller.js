@@ -1,144 +1,17 @@
 const { pool } = require("../../db");
-const NodeCache = require("node-cache");
-const {
-  fetchAndCacheData,
-  normalizeString,
-  cache,
-} = require("../hooks/functions");
+const { normalizeString } = require("../hooks/functions");
 
-// const cache = new NodeCache({ stdTTL: 1200 }); // TTL (Time To Live) of 600 seconds for caché
-
-const filterDataCongresoByCache = async (req, res) => {
-  const {
-    page = 1,
-    pageSize = 10,
-    body = {},
-    exactFilters = [],
-    rangeFilters = [],
-  } = process.env.START_MODE === "GRAPHQL" ? req : req.body;
-  // console.log("Page", page);
-  // console.log("exactFilters", exactFilters);
-  // console.log("BODY:", body);
-  // console.log("Req:", req);
-
-  const offset = (page - 1) * pageSize;
-
-  const cacheKey = "congreso_data";
-
-  let results = cache.get(cacheKey);
-
-  if (!results) {
-    // console.log("Cache miss!");
-    results = await fetchAndCacheData();
-  }
-
-  // Create filters object
-  const filters = Object.keys(body).reduce((acc, key) => {
-    if (rangeFilters.includes(key)) {
-      if (body[key]?.min !== undefined && body[key]?.max !== undefined) {
-        acc[key] = body[key];
-      }
-    } else if (typeof body[key] === "string") {
-      acc[key] = body[key].toLowerCase();
-    } else {
-      acc[key] = body[key];
-    }
-    return acc;
-  }, {});
-
-  // console.log("Filters:", filters);
-
-  // Filters
-  let filteredData = results?.filter((item) => {
-    return Object.keys(filters).every((key) => {
-      const filterValue = filters[key];
-
-      if (
-        typeof filterValue === "object" &&
-        filterValue.min &&
-        filterValue.min !== undefined &&
-        filterValue.max &&
-        filterValue.max !== undefined
-      ) {
-        if (typeof item[key] === "string" && !isNaN(Date.parse(item[key]))) {
-          const itemDate = new Date(item[key]);
-          const minDate = new Date(filterValue.min);
-          const maxDate = new Date(filterValue.max);
-          return itemDate >= minDate && itemDate <= maxDate;
-        } else if (typeof item[key] === "number") {
-          // range numbers
-          const itemNumber = item[key];
-          return (
-            itemNumber >= Number(filterValue.min) &&
-            itemNumber <= Number(filterValue.max)
-          );
-        }
-      } else if (Array.isArray(filterValue) && filterValue.length > 0) {
-        return filterValue.some((value) =>
-          item[key]
-            ?.toString()
-            .toLowerCase()
-            .includes(value.toString().toLowerCase())
-        );
-      } else if (typeof filterValue === "string") {
-        const itemValue = normalizeString(item[key]?.toLowerCase());
-        return (
-          !filterValue ||
-          itemValue.includes(normalizeString(filterValue?.toLowerCase()))
-        );
-      } else {
-        return true;
-      }
-    });
-  });
-
-  if (exactFilters && exactFilters.length > 0) {
-    exactFilters.forEach((filterKey) => {
-      const exactValue = body[filterKey];
-
-      if (Array.isArray(exactValue)) {
-        filteredData = filteredData?.filter((item) => {
-          return exactValue.some(
-            (value) =>
-              item[filterKey]?.toString().toLowerCase() ===
-              value.toString().toLowerCase()
-          );
-        });
-      } else if (
-        exactValue !== undefined &&
-        exactValue !== null &&
-        exactValue !== ""
-      ) {
-        // if is not a array, use direct comparison
-        filteredData = filteredData?.filter(
-          (item) =>
-            item[filterKey]?.toString().toLowerCase() ===
-            exactValue.toString().toLowerCase()
-        );
-      }
-    });
-  }
-
-  if (!filteredData || !filteredData.length) {
-    filteredData = [];
-  }
-
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const paginatedData = filteredData.slice(start, end);
-
-  if (process.env.START_MODE === "GRAPHQL") {
-    return {
-      products: paginatedData || [],
-      totalProducts: filteredData.length || 0,
-    };
-  } else {
-    res.status(200).json({
-      products: paginatedData || [],
-      totalProducts: filteredData.length || 0,
-    });
-  }
-};
+// Allowed list columns to prevent identifier injection attacks
+const ALLOWED_COLUMNS = [
+  "Expediente",
+  "Contenido",
+  "Presentada",
+  "diputados_autores",
+  "Grupo_Parlamentario",
+  "comunidades_tags",
+  "provincia_tags",
+  "municipios_tags",
+];
 
 //
 const filterDataCongresoByDB = async (req, res) => {
@@ -150,13 +23,24 @@ const filterDataCongresoByDB = async (req, res) => {
     rangeFilters = [],
   } = process.env.START_MODE === "GRAPHQL" ? req : req.body;
 
-  const offset = (page - 1) * pageSize;
+  // Ensure pageSize does not exceed the security limit
+  const pageSizeLimited = Math.min(pageSize, 50);
+
+  const offset = (page - 1) * pageSizeLimited;
   let whereClauses = [];
   let params = [];
 
   // 1. DYNAMIC WHERE CLAUSE CONSTRUCTION
   Object.keys(body).forEach((key) => {
     const filterValue = body[key];
+
+    // SECURITY: If the key (column name) is not allowed, it is ignored.
+    if (!ALLOWED_COLUMNS.includes(key)) {
+      console.warn(
+        `[SECURITY WARNING] Ignored query attempt on disallowed column: ${key}`
+      );
+      return;
+    }
 
     // --- 1.1 Handle Range Filters (dates or numbers) ---
     // Assumes the frontend sends {min: '2023-01-01', max: '2023-12-31'}
@@ -207,7 +91,7 @@ const filterDataCongresoByDB = async (req, res) => {
   const countQuery = `SELECT FOUND_ROWS() as totalProducts;`;
 
   // Add OFFSET and LIMIT (pagination) to the data query parameters
-  const finalParams = [...params, offset, pageSize];
+  const finalParams = [...params, offset, pageSizeLimited];
 
   let paginatedData = [];
   let totalCount = 0;
@@ -248,6 +132,5 @@ const filterDataCongresoByDB = async (req, res) => {
 };
 
 module.exports = {
-  filterDataCongresoByCache,
   filterDataCongresoByDB,
 };
