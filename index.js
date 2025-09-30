@@ -18,10 +18,10 @@ app.use(
   })
 );
 
-app.use((req, res, next) => {
-  // console.log(`${req.method} ${req.path}`);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.path}`);
+//   next();
+// });
 
 const port = process.env.PORT ?? 8100;
 
@@ -29,7 +29,7 @@ app.use(express.json());
 
 console.log("variable START_MODE:", process.env.START_MODE);
 if (process.env.START_MODE === "GRAPHQL") {
-  //* GraphQL Endpoint
+  //* API GraphQL Endpoint
   app.use(
     "/graphql",
     graphqlHTTP({
