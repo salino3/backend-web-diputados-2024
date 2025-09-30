@@ -83,51 +83,55 @@ const filterDataCongresoByDB = async (req, res) => {
   const whereCondition =
     whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-  // 2. SQL QUERY DEFINITION
+  // 2. SQL QUERY DEFINITION (Uses CTEs for single-query data + count)
   const dataQuery = `
-        SELECT SQL_CALC_FOUND_ROWS *
-        FROM congreso_preguntas_01_11_2024 
-        ${whereCondition}
-        ORDER BY Presentada DESC 
-        LIMIT ?, ?;
+        WITH filtered AS (
+            SELECT *
+            FROM congreso_preguntas_01_11_2024
+            ${whereCondition}
+        )
+        SELECT results.*,
+               totals.totalProducts
+        FROM (
+            SELECT COUNT(*) AS totalProducts
+            FROM filtered
+        ) AS totals
+        JOIN (
+            SELECT *
+            FROM filtered
+            ORDER BY Presentada DESC
+            LIMIT ?, ?
+        ) AS results;
     `;
-
-  // Query to retrieve the total count calculated by SQL_CALC_FOUND_ROWS
-  const countQuery = `SELECT FOUND_ROWS() as totalProducts;`;
 
   // Add OFFSET and LIMIT (pagination) to the data query parameters
   const finalParams = [...params, offset, pageSizeLimited];
 
-  let paginatedData = [];
-  let totalCount = 0;
-
   try {
-    // 3. QUERY EXECUTION
     const [rows] = await pool.query(dataQuery, finalParams);
-    paginatedData = rows;
 
-    const [countRows] = await pool.query(countQuery);
-    totalCount = countRows[0]?.totalProducts || 0;
+    const paginatedData = rows.map(({ totalProducts, ...rest }) => rest);
+    const totalCount = rows.length > 0 ? rows[0].totalProducts : 0;
+
+    if (process.env.START_MODE === "GRAPHQL") {
+      return {
+        products: paginatedData,
+        totalProducts: totalCount,
+      };
+    } else {
+      res.status(200).json({
+        products: paginatedData,
+        totalProducts: totalCount,
+      });
+    }
   } catch (error) {
     console.error("Error al filtrar datos desde MySQL:", error);
     // Error Handling
     if (process.env.START_MODE === "GRAPHQL") {
       throw new Error("Error fetching data from database.");
     } else {
-      return res.status(500).json({ error: "Error interno del servidor" });
+      return res.status(500).json({ error: "Internal Server error" });
     }
-  }
-
-  // 4. RESPONSE TO THE FRONTEND
-  const responseData = {
-    products: paginatedData,
-    totalProducts: totalCount,
-  };
-
-  if (process.env.START_MODE === "GRAPHQL") {
-    return responseData;
-  } else {
-    res.status(200).json(responseData);
   }
 };
 
