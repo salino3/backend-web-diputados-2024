@@ -44,9 +44,24 @@ const filterDataCongresoByDB = async (req, res) => {
 
     // --- 1.1 Handle Range Filters (dates or numbers) ---
     if (rangeFilters.includes(key) && filterValue?.min && filterValue?.max) {
-      whereClauses.push(`\`${key}\` BETWEEN ? AND ?`);
-      params.push(filterValue.min);
-      params.push(filterValue.max);
+      if (key === "Presentada") {
+        // The key is to force the conversion of both sides of the comparison to the DATE type
+        // using STR_TO_DATE in the WHERE clause.
+
+        // 1. SQL Clause: Converts the column (DD/MM/YYYY) and the parameters (YYYY-MM-DD)
+        whereClauses.push(
+          `STR_TO_DATE(\`${key}\`, '%d/%m/%Y') BETWEEN STR_TO_DATE(?, '%Y-%m-%d') AND STR_TO_DATE(?, '%Y-%m-%d')`
+        );
+
+        // 2. Standard behavior for other ranges
+        params.push(filterValue.min);
+        params.push(filterValue.max);
+      } else {
+        // Standard behavior for other ranges
+        whereClauses.push(`\`${key}\` BETWEEN ? AND ?`);
+        params.push(filterValue.min);
+        params.push(filterValue.max);
+      }
 
       // --- 1.2 Handle Multiselect (Arrays) ---
       // Values are pre-cleaned from dropdowns.
