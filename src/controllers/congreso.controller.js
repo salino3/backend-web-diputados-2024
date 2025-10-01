@@ -23,9 +23,7 @@ const filterDataCongresoByDB = async (req, res) => {
     rangeFilters = [],
   } = process.env.START_MODE === "GRAPHQL" ? req : req.body;
 
-  // Ensure pageSize does not exceed the security limit
   const pageSizeLimited = Math.min(pageSize, 50);
-
   const offset = (page - 1) * pageSizeLimited;
   let whereClauses = [];
   let params = [];
@@ -43,34 +41,50 @@ const filterDataCongresoByDB = async (req, res) => {
     }
 
     // --- 1.1 Handle Range Filters (dates or numbers) ---
-    if (rangeFilters.includes(key) && filterValue?.min && filterValue?.max) {
-      if (key === "Presentada") {
-        // The key is to force the conversion of both sides of the comparison to the DATE type
-        // using STR_TO_DATE in the WHERE clause.
+    // Checks if the key is in rangeFilters AND has at least a min or max value.
+    if (rangeFilters.includes(key) && (filterValue?.min || filterValue?.max)) {
+      let condition = "";
 
-        // 1. SQL Clause: Converts the column (DD/MM/YYYY) and the parameters (YYYY-MM-DD)
-        whereClauses.push(
-          `STR_TO_DATE(\`${key}\`, '%d/%m/%Y') BETWEEN STR_TO_DATE(?, '%Y-%m-%d') AND STR_TO_DATE(?, '%Y-%m-%d')`
-        );
+      // 1. Determine if the column needs special date conversion (Presentada: DD/MM/YYYY)
+      const requiresDateConversion = key === "Presentada";
 
-        // 2. Standard behavior for other ranges
+      // Column Name in SQL: either plain backticks or STR_TO_DATE() wrapper
+      const columnName = requiresDateConversion
+        ? `STR_TO_DATE(\`${key}\`, '%d/%m/%Y')` // Applies DD/MM/YYYY conversion
+        : `\`${key}\``;
+
+      // Parameter Pattern: either STR_TO_DATE(?) or simple ?
+      const datePattern = requiresDateConversion
+        ? "STR_TO_DATE(?, '%Y-%m-%d')"
+        : "?";
+
+      // 2. Build the SQL Condition based on which values (min/max/both) were provided
+
+      if (filterValue.min && filterValue.max) {
+        // Case A: Both min AND max -> Use BETWEEN
+        condition = `${columnName} BETWEEN ${datePattern} AND ${datePattern}`;
+        whereClauses.push(condition);
+        params.push(filterValue.min, filterValue.max);
+      } else if (filterValue.min) {
+        // Case B: Only Minimum -> Use Greater Than or Equal To (>=)
+        // Returns all records FROM the min date onwards.
+        condition = `${columnName} >= ${datePattern}`;
+        whereClauses.push(condition);
         params.push(filterValue.min);
-        params.push(filterValue.max);
-      } else {
-        // Standard behavior for other ranges
-        whereClauses.push(`\`${key}\` BETWEEN ? AND ?`);
-        params.push(filterValue.min);
+      } else if (filterValue.max) {
+        // Case C: Only Maximum -> Use Less Than or Equal To (<=)
+        // Returns all records UP TO the max date.
+        condition = `${columnName} <= ${datePattern}`;
+        whereClauses.push(condition);
         params.push(filterValue.max);
       }
 
       // --- 1.2 Handle Multiselect (Arrays) ---
-      // Values are pre-cleaned from dropdowns.
     } else if (Array.isArray(filterValue) && filterValue.length > 0) {
       const conditions = filterValue
         .map((val) => `\`${key}\` LIKE ?`)
         .join(" OR ");
       whereClauses.push(`(${conditions})`);
-      // Multiselect arrays require wildcards for substring search
       filterValue.forEach((val) => params.push(`%${val}%`));
 
       // --- 1.3 Handle Text Filters (String) ---
@@ -79,15 +93,13 @@ const filterDataCongresoByDB = async (req, res) => {
       if (exactFilters.includes(key)) {
         whereClauses.push(`\`${key}\` = ?`);
         params.push(filterValue);
-
-        // SPECIAL CASE: 'Contenido' (Free Text Search)
       } else if (key === "Contenido") {
+        // SPECIAL CASE: 'Contenido' (Free Text Search with normalization)
         const normalizedValue = normalizeString(filterValue);
-
         whereClauses.push(`LOWER(\`${key}\`) LIKE ?`);
-
         params.push(`%${normalizedValue}%`);
       } else {
+        // All other Partial Search Filters
         whereClauses.push(`\`${key}\` LIKE ?`);
         params.push(`%${filterValue}%`);
       }
